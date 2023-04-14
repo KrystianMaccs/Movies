@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+from python_decouple import config
 
 
 # Define MongoDB connection details
