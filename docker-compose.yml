@@ -1,47 +1,91 @@
-version: '3.3'
+version: "3.9"
 
 services:
-  zookeeper:
-    image: debezium/zookeeper:1.4
+  db:
+    image: mongo:4.4
+    container_name: mongodb
+    restart: always
+    volumes:
+      - ./data/mongodb:/data/db
     ports:
-      - "2181:2181"
-
-  kafka:
-    image: debezium/kafka:1.4
-    ports:
-      - "9092:9092"
-    links:
-      - zookeeper
+      - 27017:27017
 
   postgres:
-    image: debezium/postgres:11
+    image: postgres:13.3
+    container_name: postgres
+    restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: mydb
-    ports:
-      - "5432:5432"
-
-  mongo:
-    image: mongo:latest
-    environment:
-      MONGO_INITDB_DATABASE: mydb
-
-  connector:
-    image: debezium/connect:1.4
-    environment:
-      BOOTSTRAP_SERVERS: kafka:9092
-      GROUP_ID: 1
-      CONFIG_STORAGE_TOPIC: my_configs
-      OFFSET_STORAGE_TOPIC: my_offsets
-      STATUS_STORAGE_TOPIC: my_status
-      CONFIG_STORAGE_REPLICATION_FACTOR: 1
-      OFFSET_STORAGE_REPLICATION_FACTOR: 1
-      STATUS_STORAGE_REPLICATION_FACTOR: 1
-      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
-      CONNECT_VALUE_CONVERTER: io.debezium.converters.JsonConverter
-      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
-      CONNECT_REST_ADVERTISED_HOST_NAME: connector
     volumes:
-      - ./debezium-connector:/kafka/debezium-connector
+      - ./data/postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
 
+  django:
+    build: .
+    container_name: django
+    restart: always
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+      - postgres
+      - celery
+      - debezium
+
+  celery:
+    build: .
+    container_name: celery
+    restart: always
+    command: celery -A myapp worker --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+      - debezium
+
+  redis:
+    image: redis:6.2.5-alpine
+    container_name: redis
+    restart: always
+    volumes:
+      - ./data/redis:/data
+    ports:
+      - 6379:6379
+
+  debezium:
+    image: debezium/connect:1.6
+    container_name: debezium
+    restart: always
+    environment:
+      - BOOTSTRAP_SERVERS=kafka:9092
+      - GROUP_ID=1
+      - CONFIG_STORAGE_TOPIC=myapp_config
+      - OFFSET_STORAGE_TOPIC=myapp_offsets
+      - STATUS_STORAGE_TOPIC=myapp_status
+    depends_on:
+      - kafka
+    ports:
+      - 8083:8083
+
+  kafka:
+    image: debezium/kafka:1.6
+    container_name: kafka
+    restart: always
+    environment:
+      - ZOOKEEPER_CONNECT=zookeeper:2181
+    ports:
+      - 9092:9092
+
+  zookeeper:
+    image: debezium/zookeeper:1.6
+    container_name: zookeeper
+    restart: always
+    ports:
+      - 2181:2181
