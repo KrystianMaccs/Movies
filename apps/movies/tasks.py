@@ -58,31 +58,6 @@ def get_trending_movies() -> List:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@shared_task
-def sync_movie_to_mongodb(movie_id):
-    try:
-        movie_collection = mongo_client[mongo_db_name]['movies']
-        movie = Movie.objects.get(id=movie_id)
-
-        movie_document = {
-            'id': str(movie.id),
-            'name': movie.name,
-            'protagonists': movie.protagonists,
-            'poster': movie.poster.url,
-            'start_date': movie.start_date.isoformat(),
-            'ranking': movie.ranking
-        }
-
-        uuid_binary = bson.Binary(bytes(movie.id.bytes), subtype=bson.binary.UUID_SUBTYPE)
-        movie_document['id'] = uuid_binary
-
-        movie_collection.update_one({'id': str(movie.id)}, {'$set': movie_document}, upsert=True)
-
-        return "Movie synced to MongoDB successfully"
-    except Exception as e:
-        # Handle the exception here
-        return "An error occurred while syncing movie to MongoDB: {}".format(str(e))
-
 
 movie_id = str(Movie.objects.first().id)
 app.conf.beat_schedule = {

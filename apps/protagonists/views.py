@@ -3,6 +3,7 @@ from ninja import Router, Schema
 from apps.movies.models import Movie
 from .models import Protagonist
 from .schemas import ProtagonistSchema
+from apps.utils.sync import sync_db_changes_to_mongo
 
 router = Router()
 
@@ -10,6 +11,7 @@ router = Router()
 @router.get("/protagonists")
 def list_protagonists(request):
     protagonists = Protagonist.objects.all()
+    sync_db_changes_to_mongo(protagonists)  # sync changes to mongo
     return [ProtagonistSchema.from_orm(p) for p in protagonists]
 
 
@@ -21,6 +23,7 @@ def create_protagonist(request, protagonist_in: ProtagonistSchema):
         raise Http404("Movie not found")
     protagonist = Protagonist(name=protagonist_in.name, movie=movie)
     protagonist.save()
+    sync_db_changes_to_mongo(protagonist)  # sync changes to mongo
     return ProtagonistSchema.from_orm(protagonist)
 
 
@@ -30,6 +33,7 @@ def get_protagonist(request, protagonist_id: int):
         protagonist = Protagonist.objects.get(pk=protagonist_id)
     except Protagonist.DoesNotExist:
         raise Http404("Protagonist not found")
+    sync_db_changes_to_mongo(protagonist)  # sync changes to mongo
     return ProtagonistSchema.from_orm(protagonist)
 
 
@@ -46,6 +50,7 @@ def update_protagonist(request, protagonist_id: int, protagonist_in: Protagonist
     protagonist.name = protagonist_in.name
     protagonist.movie = movie
     protagonist.save()
+    sync_db_changes_to_mongo(protagonist)  # sync changes to mongo
     return ProtagonistSchema.from_orm(protagonist)
 
 
@@ -56,4 +61,5 @@ def delete_protagonist(request, protagonist_id: int):
     except Protagonist.DoesNotExist:
         raise Http404("Protagonist not found")
     protagonist.delete()
+    sync_db_changes_to_mongo(protagonist)  # sync changes to mongo
     return {"success": True}

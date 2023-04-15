@@ -1,4 +1,5 @@
 import os
+import sys
 from datetime import timedelta
 from decouple import config, Csv
 from pathlib import Path
@@ -6,6 +7,8 @@ from pathlib import Path
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+sys.path.append(os.path.join(BASE_DIR, 'apps'))
+
 
 
 # Quick-start development settings - unsuitable for production
