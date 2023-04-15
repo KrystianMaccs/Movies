@@ -3,6 +3,7 @@ from django.apps import apps
 from pymongo import MongoClient
 from bson import ObjectId
 from ninja.errors import HttpError
+from decouple import config
 
 MONGO_URI = 'mongodb://{user}:{password}@{host}:{port}/{db}'.format(
     user=config('MONGO_USER'),

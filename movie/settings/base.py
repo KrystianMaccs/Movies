@@ -139,18 +139,11 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Africa/Lagos'
 
-# Celery Scheduler
-# CELERY_TASK_TRACK_STARTED = True
-# CELERY_TASK_TIME_LIMIT = 30 * 60
-# CELERY_IGNORE_RESULT = True
-# CELERY_BROKER_URL = config('CELERY_URL')
-# CELERY_HIJACK_ROOT_LOGGER = False
-# REDIS_CHANNEL_URL = config('REDIS_CHANNEL_URL')
 
 # Celery beat scheduler settings
 CELERY_BEAT_SCHEDULE = {
-    'update-movie-rank': {
-        'task': 'apps.movies.tasks.update_movie_rank',
+    'update-movie-rating': {
+        'task': 'apps.movies.tasks.update_movie_rating',
         'schedule': timedelta(minutes=5),
     },
 }
