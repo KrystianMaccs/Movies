@@ -13,17 +13,15 @@ RUN apt-get update \
     gcc \
     libc-dev \
     bash \
-    git \
-    && pip3 install --upgrade pip
+    git
 
+COPY ./requirements.txt /app/requirements.txt
+RUN pip install --upgrade pip && pip install --no-cache-dir -r /app/requirements.txt
 
 ENV LIBRARY_PATH=/lib:/usr/lib
-
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONDONTWRITEBYTECODE 1
 
 WORKDIR /app
 
-COPY . /app
-
-RUN pip3 --no-cache-dir install -r requirements.txt
+COPY ./movie /app/movie

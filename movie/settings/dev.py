@@ -20,7 +20,7 @@ DATABASES = {
     #       'password': config('MONGO_PASSWORD'),
     #},
     #   'TEST': {
-    #       'MIRROR': 'default',
+    #      'MIRROR': 'default',
     #   },
     #}
 }
