@@ -33,6 +33,7 @@ DJANGO_APPS = [
 SITE_ID = 1
 
 LOCAL_APPS = [
+    'apps.utils',
     'apps.users',
     'apps.movies',
     'apps.ratings',

@@ -1,18 +1,22 @@
+from celery import shared_task
 from pymongo import MongoClient
-from python_decouple import config
+from django.conf import settings
+import psycopg2
 
-
-# Define MongoDB connection details
-host = 'mongodb_host'
-port = 27017
-username = 'mongodb_username'
-password = 'mongodb_password'
-
-
-def get_db_handle(db_name, host, port, username, password):
-    client = MongoClient(host=host, port=int(port), username=username, password=password)
-    db_handle = client[db_name]
-    return db_handle, client
-
-def get_collection_handle(db_handle, collection_name):
-    return db_handle[collection_name]
+@shared_task
+def replicate_data():
+    # Connect to the MongoDB database
+    client = MongoClient(settings.DATABASES['nonrel']['CLIENT']['host'], 
+                         settings.DATABASES['nonrel']['CLIENT']['port'])
+    db = client[settings.DATABASES['nonrel']['NAME']]
+    collection = db['mycollection']
+    
+    # Connect to the PostgreSQL database
+    conn = psycopg2.connect(
+        dbname=settings.DATABASES['default'][config('NAME')],
+        user=settings.DATABASES['default']['USER'],
+        password=settings.DATABASES['default']['PASSWORD'],
+        host=settings.DATABASES['default']['HOST'],
+        port=settings.DATABASES['default']['PORT']
+    )
+    cursor = conn.cursor()

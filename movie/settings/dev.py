@@ -10,19 +10,19 @@ DATABASES = {
         'PORT': config('POSTGRES_PORT'),
 
     },
-    'nonrel': {
-        'ENGINE': 'djongo',
-        'NAME': config('MONGO_NAME'),
-        'CLIENT': {
-            'host': config('MONGO_HOST'),
-            'port': config('MONGO_PORT'),
-            'username': config('MONGO_USER'),
-            'password': config('MONGO_PASSWORD'),
-    },
-        'TEST': {
-            'MIRRRO': 'default',
-        },
-    }
+    #'nonrel': {
+    #   'ENGINE': 'djongo',
+    #   'NAME': config('MONGO_NAME'),
+    #   'CLIENT': {
+    #       'host': config('MONGO_HOST'),
+    #       'port': config('MONGO_PORT'),
+    #       'username': config('MONGO_USER'),
+    #       'password': config('MONGO_PASSWORD'),
+    #},
+    #   'TEST': {
+    #       'MIRROR': 'default',
+    #   },
+    #}
 }
 
 

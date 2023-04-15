@@ -1,5 +1,5 @@
 import uuid 
-
+from typing import Any
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.utils import timezone
@@ -34,5 +34,5 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_full_name(self):
         return f'{self.first_name} {self.last_name}'
     
-    
-
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        super().save(*args, **kwargs)

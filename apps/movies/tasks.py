@@ -12,7 +12,7 @@ from pymongo.errors import PyMongoError
 
 app = Celery("movies")
 
-mongo_host = os.getenv('MONGO_HOST', '127.0.0.1')
+mongo_host = os.getenv('MONGO_HOST')
 mongo_port = int(os.getenv('MONGO_PORT', '27017'))
 mongo_username = os.getenv('MONGO_USERNAME', 'myuser')
 mongo_password = os.getenv('MONGO_PASSWORD', 'mypassword')
