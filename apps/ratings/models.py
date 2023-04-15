@@ -48,6 +48,12 @@ class TicketRating(models.Model):
     last_updated = models.DateTimeField(_('last updated'), auto_now=True)
     date_created = models.DateTimeField(_('date created'), auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.movie.status != 'upcoming':
+            update_movie_rating.delay(self.movie.id)
+
+
 
     def update_movie_rating(tr):
         movie=tr.movie
