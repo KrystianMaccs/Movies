@@ -1,4 +1,5 @@
 import uuid
+from django.utils import timezone
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -20,9 +21,9 @@ class Movie(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
     name = models.CharField(max_length=250)
     description = models.TextField()
-    status = models.CharField(max_length=250, choices=STATUS, default=COMING_UP)
+    status = models.CharField(max_length=250, choices=STATUS, default="Coming up")
     poster = models.ImageField()
-    start_date = models.DateTimeField()
+    start_date = models.DateTimeField(default=timezone.now, null=True)
     last_updated = models.DateTimeField(_('last updated'), auto_now=True)
     date_created = models.DateTimeField(_('date created'), auto_now_add=True)
     

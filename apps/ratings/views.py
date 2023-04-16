@@ -1,99 +1,63 @@
 from typing import List
 from ninja import Router
-from .models import Rating, RatingValue, TicketRating
-from .schemas import (RatingSchema, RatingValueSchema, TicketRatingSchema, 
-                       MovieRatingSchema)
+from apps.tickets.models import Ticket
+from apps.movies.models import Movie
+from apps.users.models import User
+from apps.ratings.models import TicketRating, Rating, RatingValue, MovieRating
+from apps.ratings.schemas import TicketRatingSchema
 
 router = Router()
 
-# CRUD endpoints for Rating model
-@router.get("/ratings", response=List[RatingSchema])
-def list_ratings(request):
-    return Rating.objects.all()
 
-@router.get("/ratings/{rating_id}", response=RatingSchema)
-def get_rating(request, rating_id: str):
-    return Rating.objects.get(id=rating_id)
+@router.post("/ticket-ratings/", response=TicketRatingSchema)
+def create_ticket_rating(request, ticket_id: str, rating_value_id: str):
+    try:
+        ticket = Ticket.objects.get(id=ticket_id)
+        rating_value = RatingValue.objects.get(id=rating_value_id)
+        user = request.user
+        rating = Rating.objects.create(user=user, value=rating_value)
+        ticket_rating = TicketRating.objects.create(rating=rating, ticket=ticket, movie=ticket.movie)
+        if ticket.movie.status != 'upcoming':
+            update_movie_rating.delay(ticket.movie.id)
+        return ticket_rating
+    except (Ticket.DoesNotExist, RatingValue.DoesNotExist):
+        return {"detail": "Ticket or rating value does not exist."}
 
-@router.post("/ratings", response=RatingSchema)
-def create_rating(request, payload: RatingSchema):
-    rating = Rating.objects.create(user=payload.user, value=payload.value)
-    return rating
 
-@router.put("/ratings/{rating_id}", response=RatingSchema)
-def update_rating(request, rating_id: str, payload: RatingSchema):
-    rating = Rating.objects.get(id=rating_id)
-    rating.user = payload.user
-    rating.value = payload.value
-    rating.save()
-    return rating
+@router.get("/movie-ratings/{movie_id}/")
+def get_movie_ratings(request, movie_id: str):
+    try:
+        movie = Movie.objects.get(id=movie_id)
+        movie_rating = MovieRating.objects.get(movie=movie)
+        return {
+            "total_presumable_score": movie_rating.total_presumable_score,
+            "total_actual_score": movie_rating.total_actual_score,
+            "rating": movie_rating.rating,
+        }
+    except (Movie.DoesNotExist, MovieRating.DoesNotExist):
+        return {"detail": "Movie rating does not exist."}
 
-@router.delete("/ratings/{rating_id}")
-def delete_rating(request, rating_id: str):
-    Rating.objects.filter(id=rating_id).delete()
-    return {"message": "Rating deleted successfully"}
 
-# CRUD endpoints for RatingValue model
-@router.get("/rating-values", response=List[RatingValueSchema])
-def list_rating_values(request):
-    return RatingValue.objects.all()
-
-@router.get("/rating-values/{rating_value_id}", response=RatingValueSchema)
-def get_rating_value(request, rating_value_id: str):
-    return RatingValue.objects.get(id=rating_value_id)
-
-@router.post("/rating-values", response=RatingValueSchema)
-def create_rating_value(request, payload: RatingValueSchema):
-    rating_value = RatingValue.objects.create(title=payload.title, narration=payload.narration, score=payload.score)
-    return rating_value
-
-@router.put("/rating-values/{rating_value_id}", response=RatingValueSchema)
-def update_rating_value(request, rating_value_id: str, payload: RatingValueSchema):
-    rating_value = RatingValue.objects.get(id=rating_value_id)
-    rating_value.title = payload.title
-    rating_value.narration = payload.narration
-    rating_value.score = payload.score
-    rating_value.save()
-    return rating_value
-
-@router.delete("/rating-values/{rating_value_id}")
-def delete_rating_value(request, rating_value_id: str):
-    RatingValue.objects.filter(id=rating_value_id).delete()
-    return {"message": "Rating value deleted successfully"}
-
-# CRUD endpoints for TicketRating model
-@router.get("/ticket-ratings", response=List[TicketRatingSchema])
+@router.get("/ticket-ratings/", response=List[TicketRatingSchema])
 def list_ticket_ratings(request):
-    return TicketRating.objects.all()
+    ticket_ratings = TicketRating.objects.all()
+    return ticket_ratings
 
-@router.get("/ticket-ratings/{ticket_rating_id}", response=TicketRatingSchema)
-def get_ticket_rating(request, ticket_rating_id: str):
-    return TicketRating.objects.get(id=ticket_rating_id)
 
-@router.post("/ticket-ratings", response=TicketRatingSchema)
-def create_ticket_rating(request, payload: TicketRatingSchema):
-    ticket_rating = TicketRating.objects.create(rating=payload.rating, ticket=payload.ticket, movie=payload.movie)
-   
-# CRUD endpoints for TicketRating model
-@router.get("/ticket-ratings", response=List[TicketRatingSchema])
-def list_ticket_ratings(request):
-    return TicketRating.objects.all()
+@router.get("/ticket-ratings/{id}/", response=TicketRatingSchema)
+def retrieve_ticket_rating(request, id: str):
+    try:
+        ticket_rating = TicketRating.objects.get(id=id)
+        return ticket_rating
+    except TicketRating.DoesNotExist:
+        return {"detail": "Ticket rating does not exist."}
 
-@router.get("/ticket-ratings/{ticket_rating_id}", response=TicketRatingSchema)
-def get_ticket_rating(request, ticket_rating_id: str):
-    return TicketRating.objects.get(id=ticket_rating_id)
 
-@router.post("/ticket-ratings", response=TicketRatingSchema)
-def create_ticket_rating(request, payload: TicketRatingSchema):
-    ticket_rating = TicketRating.objects.create(rating=payload.rating, ticket=payload.ticket, movie=payload.movie)
-    movie_rating = TicketRating.update_movie_rating(ticket_rating)
-    return ticket_rating
-
-@router.put("/ticket-ratings/{ticket_rating_id}", response=TicketRatingSchema)
-def update_ticket_rating(request, ticket_rating_id: str, payload: TicketRatingSchema):
-    ticket_rating = TicketRating.objects.get(id=ticket_rating_id)
-    ticket_rating.rating = payload.rating
-    ticket_rating.ticket = payload.ticket
-    ticket_rating.save()
-    movie_rating = TicketRating.update_movie_rating(ticket_rating)
-    return ticket_rating
+@router.delete("/ticket-ratings/{id}/")
+def delete_ticket_rating(request, id: str):
+    try:
+        ticket_rating = TicketRating.objects.get(id=id)
+        ticket_rating.delete()
+        return {"detail": "Ticket rating has been deleted."}
+    except TicketRating.DoesNotExist:
+        return {"detail": "Ticket rating does not exist."}

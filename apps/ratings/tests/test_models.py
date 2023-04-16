@@ -13,7 +13,7 @@ def user():
 
 @pytest.fixture
 def movie():
-    return Movie.objects.create(title='Test Movie', status='upcoming')
+    return Movie.objects.create(name='Test Movie', status='upcoming')
 
 
 @pytest.fixture

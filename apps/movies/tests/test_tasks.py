@@ -1,5 +1,6 @@
 import pytest
 from django.utils import timezone
+from datetime import timedelta
 from apps.movies.models import Movie
 from apps.movies.tasks import update_movie_rank
 
@@ -20,10 +21,10 @@ def test_update_movie_rank(upcoming_movies):
     for movie in upcoming_movies:
         movie.refresh_from_db()
         if movie.status == 'Coming up':
-            assert movie.ranking == 0
+            assert movie.status == 0
         elif movie.status == 'Starting':
-            assert movie.ranking == 10
+            assert movie.status == 10
         elif movie.status == 'Running':
-            assert movie.ranking == 20
+            assert movie.status == 20
         elif movie.status == 'Finished':
-            assert movie.ranking == 30
+            assert movie.status == 30
