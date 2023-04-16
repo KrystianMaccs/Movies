@@ -3,25 +3,23 @@ from .base import *
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': config('POSTGRES_HOST'),
+        'HOST': config('POSTGRES_HOST', cast=int),
         'NAME': config('POSTGRES_NAME'),
         'USER': config('POSTGRES_USER'),
         'PASSWORD': config('POSTGRES_PASSWORD'),
-        'PORT': config('POSTGRES_PORT'),
+        'PORT': config('POSTGRES_PORT', cast=int),
 
     },
     'nonrel': {
        'ENGINE': 'djongo',
        'NAME': config('MONGO_NAME'),
+       'ENFORCE_SCHEMA': False,
        'CLIENT': {
-           'host': config('MONGO_HOST'),
-           'port': config('MONGO_PORT'),
+           'host': config('MONGO_HOST', cast=int),
+           'port': config('MONGO_PORT', cast=int),
            'username': config('MONGO_USER'),
            'password': config('MONGO_PASSWORD'),
-    },
-       'TEST': {
-          'MIRROR': 'default',
-       },
+        },
     }
 }
 

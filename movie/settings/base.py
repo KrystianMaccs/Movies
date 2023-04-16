@@ -15,7 +15,7 @@ sys.path.append(os.path.join(BASE_DIR, 'apps'))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = '$gs_3@wief_$*h!zbfiy_=*2nhl9q%^@^_p6c18g3+l1tns6gl'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -132,7 +132,7 @@ AUTH_USER_MODEL = 'users.User'
 
 # Celery Settings
 
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
+CELERY_BROKER_URL = config('CELERY_BROKER_URL')
 CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND')
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
@@ -142,8 +142,12 @@ CELERY_TIMEZONE = 'Africa/Lagos'
 
 # Celery beat scheduler settings
 CELERY_BEAT_SCHEDULE = {
-    'update-movie-rating': {
-        'task': 'apps.movies.tasks.update_movie_rating',
-        'schedule': timedelta(minutes=5),
+    'update_movie_rank': {
+    'task': 'apps.movies.tasks.update_movie_rank',
+    'schedule': timedelta(minutes=5),
+    },
+    'update-trending-movies': {
+        'task': 'update_trending_movies',
+        'schedule': timedelta()(minute='*/5'),
     },
 }
