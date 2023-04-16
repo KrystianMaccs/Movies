@@ -9,7 +9,6 @@ class UtilsConfig(AppConfig):
     name = 'apps.utils'
 
     def ready(self):
-        # Connect the signals for all models in the project
         for model in apps.get_models():
             @receiver(post_save, sender=model)
             def save_to_mongodb_signal(sender, instance, **kwargs):

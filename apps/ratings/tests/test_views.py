@@ -44,6 +44,7 @@ def ticket_rating_data():
 def ticket_rating(ticket_rating_data):
     return TicketRating.objects.create(**ticket_rating_data)
 
+@pytest.mark.django_db
 def test_list_ratings(client, rating):
     url = reverse('list_ratings')
     response = client.get(url)
@@ -52,6 +53,7 @@ def test_list_ratings(client, rating):
     assert response.json()[0]['user'] == rating.user
     assert response.json()[0]['value'] == rating.value
 
+@pytest.mark.django_db
 def test_get_rating(client, rating):
     url = reverse('get_rating', kwargs={'rating_id': rating.id})
     response = client.get(url)
@@ -59,6 +61,7 @@ def test_get_rating(client, rating):
     assert response.json()['user'] == rating.user
     assert response.json()['value'] == rating.value
 
+@pytest.mark.django_db
 def test_create_rating(client, rating_data):
     url = reverse('create_rating')
     response = client.post(url, data=rating_data)
@@ -67,6 +70,7 @@ def test_create_rating(client, rating_data):
     assert response.json()['value'] == rating_data['value']
     assert Rating.objects.count() == 1
 
+@pytest.mark.django_db
 def test_update_rating(client, rating, rating_data):
     url = reverse('update_rating', kwargs={'rating_id': rating.id})
     response = client.put(url, data=rating_data)
@@ -77,6 +81,7 @@ def test_update_rating(client, rating, rating_data):
     assert rating.user == rating_data['user']
     assert rating.value == rating_data['value']
 
+@pytest.mark.django_db
 def test_delete_rating(client, rating):
     url = reverse('delete_rating', kwargs={'rating_id': rating.id})
     response = client.delete(url)
@@ -84,6 +89,7 @@ def test_delete_rating(client, rating):
     assert Rating.objects.count() == 0
 
 
+@pytest.mark.django_db
 def test_create_rating_value(client):
     payload = {"title": "Test Title", "narration": "Test narration", "score": 5}
     response = client.post("/rating-values", json=payload)
@@ -93,6 +99,7 @@ def test_create_rating_value(client):
     assert response.json()["score"] == payload["score"]
 
 
+@pytest.mark.django_db
 def test_get_rating_value(client, rating_value):
     response = client.get(f"/rating-values/{rating_value.id}")
     assert response.status_code == 200
@@ -101,6 +108,7 @@ def test_get_rating_value(client, rating_value):
     assert response.json()["score"] == rating_value.score
 
 
+@pytest.mark.django_db
 def test_list_rating_values(client, rating_value):
     response = client.get("/rating-values")
     assert response.status_code == 200
@@ -111,6 +119,7 @@ def test_list_rating_values(client, rating_value):
     assert response.json()[0]["score"] == rating_value.score
 
 
+@pytest.mark.django_db
 def test_update_rating_value(client, rating_value):
     payload = {"title": "Updated Title", "narration": "Updated narration", "score": 4}
     response = client.put(f"/rating-values/{rating_value.id}", json=payload)
@@ -120,14 +129,13 @@ def test_update_rating_value(client, rating_value):
     assert response.json()["score"] == payload["score"]
 
 
+@pytest.mark.django_db
 def test_delete_rating_value(client, rating_value):
     response = client.delete(f"/rating-values/{rating_value.id}")
     assert response.status_code == 200
     assert RatingValue.objects.filter(id=rating_value.id).exists() == False
 
-
-# Tests for TicketRating endpoints
-
+@pytest.mark.django_db
 def test_create_ticket_rating(client, rating_value):
     payload = {"rating": rating_value.id, "ticket": "Test Ticket", "movie": "Test Movie"}
     response = client.post("/ticket-ratings", json=payload)
@@ -137,6 +145,7 @@ def test_create_ticket_rating(client, rating_value):
     assert response.json()["movie"] == payload["movie"]
 
 
+@pytest.mark.django_db
 def test_get_ticket_rating(client, ticket_rating):
     response = client.get(f"/ticket-ratings/{ticket_rating.id}")
     assert response.status_code == 200
@@ -144,6 +153,7 @@ def test_get_ticket_rating(client, ticket_rating):
     assert response.json()["ticket"] == ticket_rating.ticket
     assert response.json()["movie"] == ticket_rating.movie
 
+@pytest.mark.django_db
 def test_list_ticket_ratings(client, ticket_rating):
     response = client.get("/ticket-ratings")
     assert response.status_code == 200

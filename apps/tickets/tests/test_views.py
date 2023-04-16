@@ -9,7 +9,7 @@ from apps.tickets.schemas import TicketSchema
 
 @pytest.fixture
 def movie():
-    movie = Movie.objects.create(name='Test Movie', release_date=timezone.now())
+    movie = Movie.objects.create(name='Test Movie', start_date=timezone.now())
     return movie
 
 
@@ -18,7 +18,7 @@ def ticket(movie):
     ticket = Ticket.objects.create(movie=movie, price=9.99)
     return ticket
 
-
+@pytest.mark.django_db
 def test_list_tickets(client, ticket):
     response = client.get(reverse('tickets-list'))
     assert response.status_code == 200
@@ -27,7 +27,7 @@ def test_list_tickets(client, ticket):
     assert response.json()[0]['movie']['name'] == 'Test Movie'
     assert response.json()[0]['price'] == 9.99
 
-
+@pytest.mark.django_db
 def test_create_ticket(client, movie):
     ticket_data = {
         'movie_id': str(movie.id),
@@ -37,7 +37,7 @@ def test_create_ticket(client, movie):
     assert response.status_code == 200
     assert Ticket.objects.filter(movie=movie, price=14.99).exists()
 
-
+@pytest.mark.django_db
 def test_get_ticket(client, ticket):
     response = client.get(reverse('tickets-detail', kwargs={'ticket_id': ticket.id}))
     assert response.status_code == 200
@@ -45,21 +45,15 @@ def test_get_ticket(client, ticket):
     assert response.json()['movie']['name'] == 'Test Movie'
     assert response.json()['price'] == 9.99
 
-
-def test_update_ticket(client, ticket, movie):
-    ticket_data = {
-        'movie_id': str(movie.id),
-        'price': 12.99
-    }
-    response = client.put(reverse('tickets-detail', kwargs={'ticket_id': ticket.id}),
-                          data=json.dumps(ticket_data), content_type='application/json')
+@pytest.mark.django_db
+def test_update_ticket(client, ticket):
+    data = {"movie_id": 1, "price": 20}
+    response = client.put(f"/api/tickets/{ticket.id}", json=data)
     assert response.status_code == 200
-    ticket.refresh_from_db()
-    assert ticket.movie == movie
-    assert ticket.price == 12.99
-
-
+    assert Ticket.objects.filter(id=ticket.id, movie_id=data["movie_id"], price=data["price"]).exists()
+@pytest.mark.django_db
 def test_delete_ticket(client, ticket):
-    response = client.delete(reverse('tickets-detail', kwargs={'ticket_id': ticket.id}))
+    response = client.delete(f"/api/tickets/{ticket.id}")
     assert response.status_code == 200
-    assert not Ticket.objects.filter(pk=ticket.id).exists()
+    assert not Ticket.objects.filter(id=ticket.id).exists()
+

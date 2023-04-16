@@ -141,6 +141,7 @@ CELERY_TIMEZONE = 'Africa/Lagos'
 
 
 # Celery beat scheduler settings
+
 CELERY_BEAT_SCHEDULE = {
     'update_movie_rank': {
     'task': 'apps.movies.tasks.update_movie_rank',
@@ -148,6 +149,6 @@ CELERY_BEAT_SCHEDULE = {
     },
     'update-trending-movies': {
         'task': 'update_trending_movies',
-        'schedule': timedelta()(minute='*/5'),
+        'schedule': timedelta(minutes=5),
     },
 }

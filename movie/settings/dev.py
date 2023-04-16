@@ -3,7 +3,7 @@ from .base import *
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': config('POSTGRES_HOST', cast=int),
+        'HOST': config('POSTGRES_HOST', cast=str),
         'NAME': config('POSTGRES_NAME'),
         'USER': config('POSTGRES_USER'),
         'PASSWORD': config('POSTGRES_PASSWORD'),
@@ -15,7 +15,7 @@ DATABASES = {
        'NAME': config('MONGO_NAME'),
        'ENFORCE_SCHEMA': False,
        'CLIENT': {
-           'host': config('MONGO_HOST', cast=int),
+           'host': config('MONGO_HOST', cast=str),
            'port': config('MONGO_PORT', cast=int),
            'username': config('MONGO_USER'),
            'password': config('MONGO_PASSWORD'),

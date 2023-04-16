@@ -1,5 +1,4 @@
-from ninja import Router
-
+from ninja import Router, Form
 from django.http import HttpRequest, HttpResponse, Http404
 from apps.utils.tokens import Token
 from apps.utils.auth import AuthBearer
@@ -7,7 +6,6 @@ from apps.utils.login import LoginSchema
 from apps.utils.backends import EmailOrUsernameModelBackend
 from apps.users.models import User
 from apps.users.schemas import UserSchema
-from ninja import Form, Router
 from pydantic import EmailStr
 
 router = Router()
