@@ -15,7 +15,7 @@ class RatingValue(models.Model):
     last_updated = models.DateTimeField(_('last updated'), auto_now=True)
     date_created = models.DateTimeField(_('date created'), auto_now_add=True)
 
-    def _str_(self) -> str:
+    def __str__(self) -> str:
         return self.title
 
 
@@ -26,7 +26,7 @@ class Rating(models.Model):
     last_updated = models.DateTimeField(_('last updated'), auto_now=True)
     date_created = models.DateTimeField(_('date created'), auto_now_add=True)
 
-    def _str_(self) -> str:
+    def __str__(self) -> str:
         return str(self.user)
     
     

@@ -1,20 +1,31 @@
 import pytest
-from django.core.exceptions import ValidationError
-from django.utils.translation import gettext as _
+from django.utils import timezone
 from apps.movies.models import Movie
 
 
-@pytest.fixture(params=[("CU", "Coming up"), ("ST", "Starting"), ("RN", "Running"), ("FN", "Finished")], ids=["coming_up", "starting", "running", "finished"])
-def status(request):
-    return request.param
+@pytest.mark.django_db
+def test_movie_instance_saved_to_database():
+    # Create a movie instance
+    movie = Movie(
+        name='Test Movie',
+        description='This is a test movie',
+        status='Coming up',
+        poster='test.jpg',
+        start_date=timezone.now(),
+    )
+    # Save the movie instance to the database
+    movie.save()
+    
+    # Retrieve the movie instance from the database
+    retrieved_movie = Movie.objects.get(name='Test Movie')
+    
+    # Assert that the retrieved movie instance is the same as the original movie instance
+    assert retrieved_movie.name == 'Test Movie'
+    assert retrieved_movie.description == 'This is a test movie'
+    assert retrieved_movie.status == 'Coming up'
+    assert retrieved_movie.poster == 'test.jpg'
+    assert retrieved_movie.start_date == movie.start_date
 
 @pytest.mark.django_db
-def test_movie_status_choices(status):
-    movie = Movie.objects.create(
-        name="Test Movie",
-        description="This is a test movie.",
-        status=status[0],
-        poster="test_poster.png",
-        start_date="2023-04-16T12:00:00Z",
-    )
-    assert movie.status == status[0]
+def test_movie_str(movie):
+    assert str(movie) == 'The Godfather'
