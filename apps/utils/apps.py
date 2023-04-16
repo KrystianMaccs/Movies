@@ -11,7 +11,7 @@ class UtilsConfig(AppConfig):
 
     def ready(self):
         for model in self.get_models():
-            @receiver(post_save, sender=model)
+            @receiver(post_save)
             def save_to_mongodb_signal(sender, instance, **kwargs):
                 client = MongoClient(host=config("MONGO_HOST", cast=str), port=config("MONGO_PORT", cast=int))
                 db = client[config("MONGO_NAME")]
@@ -22,7 +22,7 @@ class UtilsConfig(AppConfig):
                 mongo_object = json.loads(instance.to_json())
                 mongo_collection.replace_one({'_id': mongo_object['_id']}, mongo_object, upsert=True)
 
-            @receiver(post_save, sender=model)
+            @receiver(post_save)
             def update_to_mongodb_signal(sender, instance, **kwargs):
                 # Connect to MongoDB using pymongo
                 client = MongoClient(host=config("MONGO_HOST", cast=str), port=config("MONGO_PORT", cast=int))
@@ -34,7 +34,7 @@ class UtilsConfig(AppConfig):
                 mongo_object = json.loads(instance.to_json())
                 mongo_collection.update_one({'_id': mongo_object['_id']}, {'$set': mongo_object}, upsert=True)
 
-            @receiver(post_delete, sender=model)
+            @receiver(post_delete)
             def pre_delete_from_mongodb_signal(sender, instance, **kwargs):
                 # Connect to MongoDB using pymongo
                 client = MongoClient(host=config("MONGO_HOST", cast=str), port=config("MONGO_PORT", cast=int))

@@ -40,3 +40,8 @@ def delete_movie(request, movie_id: int):
     movie = get_object_or_404(Movie, id=movie_id)
     movie.delete()
     return {"sucess": True}
+
+@router.get('/trending_movies')
+def get_trending_movies():
+    trending_movies = Movie.objects.annotate(avg_rating=Avg('rating__value__value')).order_by('-avg_rating')
+    return trending_movies
