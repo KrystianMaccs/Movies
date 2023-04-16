@@ -38,6 +38,16 @@ class MovieRating(models.Model):
     rating = models.FloatField(default=0)
     last_updated = models.DateTimeField(_('last updated'), auto_now=True)
     date_created = models.DateTimeField(_('date created'), auto_now_add=True)
+    
+    def update_movie_rating(tr):
+        movie=tr.movie
+        obj = MovieRating.objects.get_or_create(movie=movie)
+        movie_rating: MovieRating = obj
+        movie_rating.total_actual_score += tr.rating.value.score
+        movie_rating.total_presumable_score += 100
+        movie_rating.rating = (movie_rating.total_actual_score / movie_rating.total_presumable_score) * 100
+        movie_rating.save(update_fields=['total_presumable_score', 'total_actual_score', 'rating'])
+        return movie_rating
 
 
 class TicketRating(models.Model):
@@ -52,15 +62,3 @@ class TicketRating(models.Model):
         super().save(*args, **kwargs)
         if self.movie.status != 'upcoming':
             update_movie_rating.delay(self.movie.id)
-
-
-
-    def update_movie_rating(tr):
-        movie=tr.movie
-        obj = MovieRating.objects.get_or_create(movie=movie)
-        movie_rating: MovieRating = obj
-        movie_rating.total_actual_score += tr.rating.value.score
-        movie_rating.total_presumable_score += 100
-        movie_rating.rating = (movie_rating.total_actual_score / movie_rating.total_presumable_score) * 100
-        movie_rating.save(update_fields=['total_presumable_score', 'total_actual_score', 'rating'])
-        return movie_rating

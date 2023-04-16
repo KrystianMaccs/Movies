@@ -1,11 +1,13 @@
 from typing import List
 from ninja import Router
+from django.db.models import F
 from django.shortcuts import get_object_or_404
 from apps.tickets.models import Ticket
 from apps.movies.models import Movie
 from apps.users.models import User
 from apps.ratings.models import TicketRating, Rating, RatingValue, MovieRating
 from apps.ratings.schemas import TicketRatingSchema, RatingSchema, RatingValueSchema, MovieRatingSchema
+from apps.movies.schemas import MovieSchema
 
 router = Router()
 
@@ -132,3 +134,10 @@ def delete_movie_rating(request, movie_rating_id: int):
     movie_rating = get_object_or_404(MovieRating, id=movie_rating_id)
     movie_rating.delete()
     return {"success": True}
+
+@router.get("/movies/trending", response=List[MovieSchema])
+def get_trending_movies(request):
+    movies = Movie.objects.annotate(
+        rating=F('movierating__rating')
+    ).order_by('-rating')[:10]
+    return movies
