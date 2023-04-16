@@ -16,5 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+RUN pip freeze > requirements.txt
+
 CMD ["celery", "-A", "movie", "worker", "--loglevel=info"]
 

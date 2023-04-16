@@ -3,7 +3,6 @@ from ninja import Router
 from .models import Rating, RatingValue, TicketRating
 from .schemas import (RatingSchema, RatingValueSchema, TicketRatingSchema, 
                        MovieRatingSchema)
-from apps.utils.sync import sync_db_changes_to_mongo
 
 router = Router()
 
@@ -19,7 +18,6 @@ def get_rating(request, rating_id: str):
 @router.post("/ratings", response=RatingSchema)
 def create_rating(request, payload: RatingSchema):
     rating = Rating.objects.create(user=payload.user, value=payload.value)
-    sync_db_changes_to_mongo(rating)
     return rating
 
 @router.put("/ratings/{rating_id}", response=RatingSchema)
@@ -28,13 +26,11 @@ def update_rating(request, rating_id: str, payload: RatingSchema):
     rating.user = payload.user
     rating.value = payload.value
     rating.save()
-    sync_db_changes_to_mongo(rating)
     return rating
 
 @router.delete("/ratings/{rating_id}")
 def delete_rating(request, rating_id: str):
     Rating.objects.filter(id=rating_id).delete()
-    sync_db_changes_to_mongo(None, delete=True, rating_id=rating_id)
     return {"message": "Rating deleted successfully"}
 
 # CRUD endpoints for RatingValue model
@@ -49,7 +45,6 @@ def get_rating_value(request, rating_value_id: str):
 @router.post("/rating-values", response=RatingValueSchema)
 def create_rating_value(request, payload: RatingValueSchema):
     rating_value = RatingValue.objects.create(title=payload.title, narration=payload.narration, score=payload.score)
-    sync_db_changes_to_mongo(rating_value)
     return rating_value
 
 @router.put("/rating-values/{rating_value_id}", response=RatingValueSchema)
@@ -59,13 +54,11 @@ def update_rating_value(request, rating_value_id: str, payload: RatingValueSchem
     rating_value.narration = payload.narration
     rating_value.score = payload.score
     rating_value.save()
-    sync_db_changes_to_mongo(rating_value)
     return rating_value
 
 @router.delete("/rating-values/{rating_value_id}")
 def delete_rating_value(request, rating_value_id: str):
     RatingValue.objects.filter(id=rating_value_id).delete()
-    sync_db_changes_to_mongo(None, delete=True, rating_value_id=rating_value_id)
     return {"message": "Rating value deleted successfully"}
 
 # CRUD endpoints for TicketRating model
@@ -94,7 +87,6 @@ def get_ticket_rating(request, ticket_rating_id: str):
 def create_ticket_rating(request, payload: TicketRatingSchema):
     ticket_rating = TicketRating.objects.create(rating=payload.rating, ticket=payload.ticket, movie=payload.movie)
     movie_rating = TicketRating.update_movie_rating(ticket_rating)
-    sync_db_changes_to_mongo(TicketRating, ticket_rating)
     return ticket_rating
 
 @router.put("/ticket-ratings/{ticket_rating_id}", response=TicketRatingSchema)
@@ -104,5 +96,4 @@ def update_ticket_rating(request, ticket_rating_id: str, payload: TicketRatingSc
     ticket_rating.ticket = payload.ticket
     ticket_rating.save()
     movie_rating = TicketRating.update_movie_rating(ticket_rating)
-    sync_db_changes_to_mongo(TicketRating, ticket_rating)
     return ticket_rating

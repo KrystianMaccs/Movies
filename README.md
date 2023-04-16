@@ -45,7 +45,7 @@ Check the Docker logs for any error messages:
 
 
 docker-compose logs -f
-Ensure that the required ports (8000, 5432, 6379) are not in use by other applications on your system.
+Ensure that the required ports (8000, 5433, 6379) are not in use by other applications on your system.
 
 If you make changes to the Dockerfile or docker-compose.yml file, rebuild the containers using:
 

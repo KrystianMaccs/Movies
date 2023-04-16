@@ -3,7 +3,6 @@ from ninja import Router, Schema
 from apps.movies.models import Movie
 from .models import Ticket
 from .schemas import TicketSchema
-from apps.utils.sync import sync_db_changes_to_mongo
 
 router = Router()
 
@@ -20,7 +19,6 @@ def create_ticket(request, ticket_in: TicketSchema):
         raise Http404("Movie not found")
     ticket = Ticket(movie=movie, price=ticket_in.price)
     ticket.save()
-    sync_db_changes_to_mongo(ticket)
     return TicketSchema.from_orm(ticket)
 
 @router.get("/tickets/{ticket_id}")
@@ -44,7 +42,6 @@ def update_ticket(request, ticket_id: int, ticket_in: TicketSchema):
     ticket.movie = movie
     ticket.price = ticket_in.price
     ticket.save()
-    sync_db_changes_to_mongo(ticket)
     return TicketSchema.from_orm(ticket)
 
 @router.delete("/tickets/{ticket_id}")
@@ -54,5 +51,4 @@ def delete_ticket(request, ticket_id: int):
     except Ticket.DoesNotExist:
         raise Http404("Ticket not found")
     ticket.delete()
-    sync_db_changes_to_mongo(ticket, delete=True)
     return {"success": True}
