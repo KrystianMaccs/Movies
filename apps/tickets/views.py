@@ -14,7 +14,7 @@ def list_tickets(request):
 @router.post("/tickets")
 def create_ticket(request, ticket_in: TicketSchema):
     try:
-        movie = Movie.objects.get(pk=ticket_in.movie_id)
+        movie = Movie.objects.get(id=ticket_in.dict()["id"])
     except Movie.DoesNotExist:
         raise Http404("Movie not found")
     ticket = Ticket(movie=movie, price=ticket_in.price)
@@ -31,13 +31,11 @@ def get_ticket(request, ticket_id: int):
 
 @router.put("/tickets/{ticket_id}")
 def update_ticket(request, ticket_id: int, ticket_in: TicketSchema):
-    try:
-        ticket = Ticket.objects.get(pk=ticket_id)
-    except Ticket.DoesNotExist:
+    ticket = Ticket.objects.filter(pk=ticket_id).first()
+    if ticket is None:
         raise Http404("Ticket not found")
-    try:
-        movie = Movie.objects.get(pk=ticket_in.movie_id)
-    except Movie.DoesNotExist:
+    movie = Movie.objects.filter(pk=ticket_in.movie_id).first()
+    if movie is None:
         raise Http404("Movie not found")
     ticket.movie = movie
     ticket.price = ticket_in.price
