@@ -9,13 +9,13 @@ router = Router()
 
 
 @router.post("/movies")
-def list_movies(request, movies: MovieSchema):
+def create_movies(request, movies: MovieSchema):
     movies = Movie.objects.create(**movies.dict())
     return { "id": movies.id}
 
 
 @router.get("/movies/{movie_id}", response=MovieSchema)
-def create_movie(request, movie_id: int):
+def get_movie(request, movie_id: int):
     movie = get_object_or_404(Movie, id=movie_id)
     return movie
 
@@ -32,7 +32,7 @@ def update_movie(request, movie_id: int, movie: MovieSchema):
     for attr, value in movie.dict().items():
         setattr(movie, attr, value)
         movie.save()
-        return {"sucess": True}
+        return {"success": True}
 
 
 @router.delete("/movies/{movie_id}")
