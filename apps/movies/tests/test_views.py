@@ -1,26 +1,31 @@
 import json
 import pytest
 from django.urls import reverse
+from django.test import Client
 from apps.movies.models import Movie
 from apps.movies.schemas import MovieSchema
 
+client = Client()
 
-@pytest.fixture
-def new_movie():
-    movie = {
-        "name": "The Godfather",
-        "description": "A beautiful movie",
-        "status": "Running",
-        "poster": "image.png",
-        "start_date": "2022-01-01",
-    }
-    return MovieSchema.parse_obj(movie)
+@pytest.mark.django_db
+def test_create_movies():
+    movie_data = dict(name="The Godfather", description="A beautiful movie", status="Running", poster="image.png", start_date="2021-01-01")
+    response = client.post(reverse("movies"), movie_data)
+    assert response.status_code == 201
+    data = json.loads(response.content)
+    assert data["name"] == movie_data["name"]
+    assert data["description"] == movie_data["description"]
+    assert data["status"] == movie_data["status"]
+    assert data["poster"] == movie_data["poster"]
+    assert data["start_date"] == movie_data["start_date"]
 
 
-@pytest.fixture
-def create_movie(db, new_movie):
-    movie = Movie.objects.create(**new_movie.dict())
-    return movie
+
+@pytest.mark.django_db
+def test_get_movie():
+    url = reverse("get_movie", kwargs={"movie_id": 1})
+    response = client.get(url, content_type="application/json")
+    assert response.status_code == 404
 
 
 def test_create_movie(client, new_movie):

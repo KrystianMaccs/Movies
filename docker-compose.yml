@@ -1,32 +1,8 @@
 version: '3.9'
 
 services:
-  db:
-    image: postgres:latest
-    ports:
-      - "5433:5433"
-    environment:
-      - POSTGRES_INITDB_ARGS=--wal-level=logical
-      - POSTGRES_PASSWORD=Krystabella151289
-    env_file:
-      - .env
-
-  mongodb:
-    image: mongo:4.4
-    ports:
-      - 27017:27017
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: myuser
-      MONGO_INITDB_ROOT_PASSWORD: mypassword
-    depends_on:
-      - db
-    env_file:
-      - .env
-      
-  django:
+  api:
     build: .
-    container_name: django
-    restart: always
     command: >
       sh -c "python3 manage.py migrate &&
              python3 manage.py wait_for_db &&
@@ -37,27 +13,50 @@ services:
       - 8000:8000
     depends_on:
       - db
-      - celery
+      - redis
     env_file:
       - .env
+    networks:
+      - movie
+  db:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    env_file:
+      - .env
+    networks:
+      - movie
 
-  celery:
-    build: .
-    container_name: celery
-    restart: always
-    command: celery -A movie worker --loglevel=info
+  mongodb:
+    image: mongo:4.4
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_USER=${MONGO_USER}
+      MONGO_PASSWORD=${MONGO_PASSWORD}
+      MONGO_DATABASE=${MONGO_DATABASE}
     depends_on:
       - db
-      - redis
     env_file:
       - .env
 
   redis:
     image: redis:6.2.5-alpine
-    container_name: redis-server
-    restart: always
     ports:
       - 6379:6379
-    env_file:
-      - .env
+    networks:
+      - movie
 
+  celery_worker:
+    build: .
+    command: celery -A movie worker --loglevel=info
+    depends_on:
+      - redis
+      - db
+      - mongodb
+    networks:
+      - movie

@@ -1,5 +1,6 @@
 from .base import *
 
+DATABASE_APPS_MAPPING = {'mongodb': config('MONGO_NAME')}
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -10,7 +11,7 @@ DATABASES = {
         'PORT': config('POSTGRES_PORT', cast=int),
 
     },
-    'nonrel': {
+    'mongodb': {
        'ENGINE': 'djongo',
        'NAME': config('MONGO_NAME'),
        'ENFORCE_SCHEMA': False,
