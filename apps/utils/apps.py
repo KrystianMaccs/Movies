@@ -3,7 +3,6 @@ from django.apps import AppConfig
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.db.models import Model
-from django.contrib.contenttypes.models import ContentType
 from pymongo import MongoClient
 from decouple import config
 
@@ -13,7 +12,7 @@ class UtilsConfig(AppConfig):
 
     def ready(self):
         for model in self.get_models():
-            @receiver(post_save, sender=ContentType(model=model))
+            @receiver(post_save, sender=Model)
             def save_to_mongodb_signal(sender, instance, **kwargs):
                 client = MongoClient(host=config("MONGO_HOST", cast=str), port=config("MONGO_PORT", cast=int))
                 db = client[config("MONGO_NAME")]
@@ -24,7 +23,7 @@ class UtilsConfig(AppConfig):
                 mongo_object = json.loads(instance.to_json())
                 mongo_collection.replace_one({'_id': mongo_object['_id']}, mongo_object, upsert=True)
 
-            @receiver(post_save, sender=ContentType(model=model))
+            @receiver(post_save, sender=Model)
             def update_to_mongodb_signal(sender, instance, **kwargs):
                 # Connect to MongoDB using pymongo
                 client = MongoClient(host=config("MONGO_HOST", cast=str), port=config("MONGO_PORT", cast=int))
@@ -36,7 +35,7 @@ class UtilsConfig(AppConfig):
                 mongo_object = json.loads(instance.to_json())
                 mongo_collection.update_one({'_id': mongo_object['_id']}, {'$set': mongo_object}, upsert=True)
 
-            @receiver(post_save, sender=ContentType(model=model))
+            @receiver(post_save, sender=Model)
             def pre_delete_from_mongodb_signal(sender, instance, **kwargs):
                 # Connect to MongoDB using pymongo
                 client = MongoClient(host=config("MONGO_HOST", cast=str), port=config("MONGO_PORT", cast=int))

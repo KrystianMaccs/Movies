@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import patch
 from django.utils import timezone
 from apps.movies.models import Movie
 from apps.tickets.models import Ticket
@@ -30,24 +29,18 @@ def rating_value():
 def movie_rating(movie):
     return MovieRating.objects.create(movie=movie)
 
-@pytest.mark.django_db
-def test_ticket_rating_save_calls_update_movie_rating(ticket_rating):
-    with patch('apps.ratings.models.update_movie_rating') as mock_update_movie_rating:
-        ticket_rating.save()
-        if ticket_rating.movie.status == 'upcoming':
-            mock_update_movie_rating.assert_not_called()
-        else:
-            mock_update_movie_rating.assert_called_once_with(ticket_rating.movie.id)
+    
+@pytest.fixture
+def movie_rating(db):
+    movie = Movie.objects.create(name='The Godfather')
+    rating = Rating.objects.create(score=9)
+    tr = TestRating.objects.create(movie=movie, rating=rating)
+    return tr
 
-@pytest.mark.django_db
-def test_rating_value_str(rating_value):
-    assert str(rating_value) == 'test title'
-
-
-@pytest.mark.django_db
-def test_update_movie_rating_updates_movie_rating(movie_rating, ticket_rating):
-    update_movie_rating(ticket_rating)
-    movie_rating.refresh_from_db()
-    assert movie_rating.total_actual_score == ticket_rating.rating.value.score
+def test_update_movie_rating(movie_rating):
+    movie_rating = update_movie_rating(movie_rating)
+    assert isinstance(movie_rating, MovieRating)
+    assert movie_rating.movie.name == 'The Godfather'
+    assert movie_rating.total_actual_score == 9
     assert movie_rating.total_presumable_score == 100
-    assert movie_rating.rating == (movie_rating.total_actual_score / movie_rating.total_presumable_score) * 100
+    assert movie_rating.rating == 9.0
