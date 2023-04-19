@@ -37,7 +37,8 @@ DJANGO_APPS = [
 SITE_ID = 1
 
 LOCAL_APPS = [
-    'apps.utils',
+    'apps.core',
+    'apps.auths',
     'apps.users',
     'apps.movies',
     'apps.ratings',
@@ -88,6 +89,7 @@ WSGI_APPLICATION = 'movie.wsgi.application'
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
 
+DATABASE_ROUTERS = ['core.utils.db_routers.NonRelRouter', ]
 
 
 # Password validation
@@ -132,13 +134,12 @@ AUTH_USER_MODEL = 'users.User'
 
 # Celery Settings
 
-CELERY_BROKER_URL = config('CELERY_BROKER_URL')
-CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND')
-CELERY_ACCEPT_CONTENT = ['application/json']
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'Africa/Lagos'
-
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_IGNORE_RESULT = True
+CELERY_BROKER_URL = os.environ.get('CELERY_URL')
+CELERYD_HIJACK_ROOT_LOGGER = False
+REDIS_CHANNEL_URL = os.environ.get('REDIS_CHANNEL_URL')
 
 # Celery beat scheduler settings
 

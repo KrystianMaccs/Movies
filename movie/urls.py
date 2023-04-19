@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 from ninja import NinjaAPI
+from apps.core.views import post_generator
 from apps.movies.views import router as movies_router
 from apps.tickets.views import router as tickets_router
 from apps.ratings.views import router as ratings_router
@@ -19,6 +20,6 @@ api.add_router("/protagonists", protagonists_router)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', post_generator),
     path("api/", api.urls),
 ]
-

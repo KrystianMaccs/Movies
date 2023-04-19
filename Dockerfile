@@ -1,22 +1,29 @@
 FROM python:3.11-slim-buster
 
-ENV PYTHONUNBUFFERED 1
-
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        build-essential \
-        libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get upgrade -y \
+    && apt-get install -y \
+    build-essential \
+    libssl-dev \
+    libffi-dev \
+    python3-dev \
+    build-essential \
+    libjpeg-dev \
+    zlib1g-dev \
+    gcc \
+    libc-dev \
+    bash \
+    git \
+    && pip3 install --upgrade pip
 
-RUN mkdir /app
+
+ENV LIBRARY_PATH=/lib:/usr/lib
+
+ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE 1
+
 WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN pip freeze > requirements.txt
-
-CMD ["celery", "-A", "movie", "worker", "--loglevel=info"]
-
+RUN pip3 --no-cache-dir install -r requirements.txt
