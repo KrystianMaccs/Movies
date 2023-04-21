@@ -22,7 +22,7 @@ services:
 
   postgres:
     container_name: postgres
-    image: postgres:latest
+    image: postgres:12
     restart: always
     env_file: .env
     environment:
@@ -58,7 +58,7 @@ services:
                python manage.py runserver 0.0.0.0:8000"
     env_file: .env
     volumes:
-      - ${PWD}/app:/app
+      - ${PWD}:/app
     ports:
       - 8000:8000
     depends_on:
@@ -73,7 +73,7 @@ services:
     command: [
       "celery",
       "-A",
-      "app",
+      "movie",
       "worker",
       "-c",
       "1",
@@ -85,8 +85,8 @@ services:
     ]
     env_file: .env
     environment:
-      - DJANGO_SETTINGS_MODULE=app.settings
-      - DJANGO_WSGI=app.wsgi
+      - DJANGO_SETTINGS_MODULE=movies.settings
+      - DJANGO_WSGI=movies.wsgi
       - DEBUG=False
     volumes:
       - ${PWD}/app:/app

@@ -5,7 +5,14 @@ from django.test import Client
 from apps.movies.models import Movie
 from apps.movies.schemas import MovieSchema
 
-client = Client()
+@pytest.mark.django_db
+def test_get_all_items():
+    client = Client()
+    movies = Movies.objects.all()
+    url = reverse('movies:item_list')
+    response = client.get(url)
+    assert response.status_code == 200
+    assert len(response.context['movies']) == 1
 
 @pytest.mark.django_db
 def test_create_movies():
