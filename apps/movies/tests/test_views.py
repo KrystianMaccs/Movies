@@ -1,74 +1,56 @@
 import json
 import pytest
 from django.urls import reverse
-from django.test import Client
+from rest_framework import status
+from rest_framework.test import APITestCase, APIClient
 from apps.movies.models import Movie
-from apps.movies.schemas import MovieSchema
-
-@pytest.mark.django_db
-def test_get_all_items():
-    client = Client()
-    movies = Movies.objects.all()
-    url = reverse('movies:item_list')
-    response = client.get(url)
-    assert response.status_code == 200
-    assert len(response.context['movies']) == 1
-
-@pytest.mark.django_db
-def test_create_movies():
-    movie_data = dict(name="The Godfather", description="A beautiful movie", status="Running", poster="image.png", start_date="2021-01-01")
-    response = client.post(reverse("movies"), movie_data)
-    assert response.status_code == 201
-    data = json.loads(response.content)
-    assert data["name"] == movie_data["name"]
-    assert data["description"] == movie_data["description"]
-    assert data["status"] == movie_data["status"]
-    assert data["poster"] == movie_data["poster"]
-    assert data["start_date"] == movie_data["start_date"]
+#from apps import movies
 
 
 
-@pytest.mark.django_db
-def test_get_movie():
-    url = reverse("get_movie", kwargs={"movie_id": 1})
-    response = client.get(url, content_type="application/json")
-    assert response.status_code == 404
 
 
-def test_create_movie(client, new_movie):
-    url = reverse("list_movies")
-    response = client.post(url, content_type="application/json", data=json.dumps(new_movie.dict()))
-    assert response.status_code == 200
-    assert "id" in response.json()
+class MovieTests(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+        
+    @pytest.mark.django_db
+    def test_create_movie(self):
+        url = reverse('create_protagonist:create_movies')
+        data = {'name': 'The Matrix', 'description': 'A movie about the matrix', 'status': 'Running', 'poster': 'image.png', 'start_date': '2020-10-10'}
+        response = self.client.post(url, data, format='json')
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Movie.objects.count() == 1
+        assert Movie.objects.get().name == 'The Matrix'
+        
+    @pytest.mark.django_db
+    def test_get_all_movies(self):
+        url = reverse('movies:list_movies')
+        response = self.client.get(url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        
+    @pytest.mark.django_db
+    def test_get_movie_by_id(self):
+        movie = Movie.objects.create(name='The Matrix', description='A movie about the matrix', status='Running', poster='image.png', start_date='2020-10-10')
+        url = reverse('movies:get_movie', args=[movie.id])
+        response = self.client.get(url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['name'] == 'The Matrix'
+    @pytest.mark.django_db
+    def test_update_movie(self):
+        movie = Movie.objects.create(name='The Matrix', description='A movie about the matrix', status='Running', poster='image.png', start_date='2020-10-10')
+        url = reverse('movies:update_movie', args=[movie.id])        
+        data = {'name': 'The Matrix', 'description': 'A movie about the matrix', 'status': 'Running', 'poster': 'image.png', 'start_date': '2020-10-10'}
+        response = self.client.put(url, data, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        movie.refresh_from_db()
+        assert movie.name == 'The Matrix Reloaded'
+        assert movie.start_date == '2020-10-10'
 
-
-def test_get_movie(client, create_movie):
-    url = reverse("create_movie", kwargs={"movie_id": create_movie.id})
-    response = client.get(url, content_type="application/json")
-    assert response.status_code == 200
-    assert response.json()["name"] == create_movie.title
-
-
-def test_list_movies(client, create_movie):
-    url = reverse("list_movies")
-    response = client.get(url, content_type="application/json")
-    assert response.status_code == 200
-    assert len(response.json()) == 1
-
-
-def test_update_movie(client, create_movie):
-    url = reverse("update_movie", kwargs={"movie_id": create_movie.id})
-    updated_movie = {"name": "The Godfather: Part II", "description": "A beautiful movie", "status": "running", "poster": "image.png", "start_date": "2022-01-01"}
-    response = client.put(url, content_type="application/json", data=json.dumps(updated_movie))
-    assert response.status_code == 200
-    assert response.json()["sucess"] is True
-    updated_movie = Movie.objects.get(id=create_movie.id)
-    assert updated_movie.name == "The Godfather: Part II"
-
-
-def test_delete_movie(client, create_movie):
-    url = reverse("delete_movie", kwargs={"movie_id": create_movie.id})
-    response = client.delete(url, content_type="application/json")
-    assert response.status_code == 200
-    assert response.json()["sucess"] is True
-    assert Movie.objects.filter(id=create_movie.id).exists() is False
+    @pytest.mark.django_db
+    def test_delete_movie(self):
+        movie = Movie.objects.create(name='The Matrix', description='A movie about the matrix', status='Running', poster='image.png', start_date='2020-10-10')
+        url = reverse('movies: delete_movie', args=[movie.id])
+        response = self.client.delete(url, format='json')
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert Movie.objects.count() == 0
